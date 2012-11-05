@@ -10,6 +10,10 @@
 		E1C37B5F1648297A00F1976D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1C37B5E1648297A00F1976D /* Foundation.framework */; };
 		E1C37B621648297A00F1976D /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E1C37B611648297A00F1976D /* main.m */; };
 		E1C37B661648297A00F1976D /* perceptualhash.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = E1C37B651648297A00F1976D /* perceptualhash.1 */; };
+		E1C37B9016482E2100F1976D /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1C37B8416482A7800F1976D /* SenTestingKit.framework */; };
+		E1C37B9216482E2100F1976D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1C37B9116482E2100F1976D /* Cocoa.framework */; };
+		E1C37B9C16482E2100F1976D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = E1C37B9A16482E2100F1976D /* InfoPlist.strings */; };
+		E1C37B9F16482E2100F1976D /* perceptualhash_tests.m in Sources */ = {isa = PBXBuildFile; fileRef = E1C37B9E16482E2100F1976D /* perceptualhash_tests.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,6 +35,18 @@
 		E1C37B611648297A00F1976D /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		E1C37B641648297A00F1976D /* perceptualhash-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "perceptualhash-Prefix.pch"; sourceTree = "<group>"; };
 		E1C37B651648297A00F1976D /* perceptualhash.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = perceptualhash.1; sourceTree = "<group>"; };
+		E1C37B7516482A4C00F1976D /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		E1C37B8416482A7800F1976D /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
+		E1C37B8F16482E2100F1976D /* perceptualhash-tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "perceptualhash-tests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1C37B9116482E2100F1976D /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		E1C37B9416482E2100F1976D /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		E1C37B9516482E2100F1976D /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		E1C37B9616482E2100F1976D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		E1C37B9916482E2100F1976D /* perceptualhash-tests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "perceptualhash-tests-Info.plist"; sourceTree = "<group>"; };
+		E1C37B9B16482E2100F1976D /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		E1C37B9D16482E2100F1976D /* perceptualhash_tests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = perceptualhash_tests.h; sourceTree = "<group>"; };
+		E1C37B9E16482E2100F1976D /* perceptualhash_tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = perceptualhash_tests.m; sourceTree = "<group>"; };
+		E1C37BA016482E2100F1976D /* perceptualhash-tests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "perceptualhash-tests-Prefix.pch"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,6 +58,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E1C37B8B16482E2100F1976D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1C37B9016482E2100F1976D /* SenTestingKit.framework in Frameworks */,
+				E1C37B9216482E2100F1976D /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -49,6 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				E1C37B601648297A00F1976D /* perceptualhash */,
+				E1C37B9716482E2100F1976D /* perceptualhash-tests */,
 				E1C37B5D1648297A00F1976D /* Frameworks */,
 				E1C37B5B1648297A00F1976D /* Products */,
 			);
@@ -58,6 +84,7 @@
 			isa = PBXGroup;
 			children = (
 				E1C37B5A1648297A00F1976D /* perceptualhash */,
+				E1C37B8F16482E2100F1976D /* perceptualhash-tests.octest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -65,7 +92,11 @@
 		E1C37B5D1648297A00F1976D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				E1C37B8416482A7800F1976D /* SenTestingKit.framework */,
 				E1C37B5E1648297A00F1976D /* Foundation.framework */,
+				E1C37B7516482A4C00F1976D /* CoreFoundation.framework */,
+				E1C37B9116482E2100F1976D /* Cocoa.framework */,
+				E1C37B9316482E2100F1976D /* Other Frameworks */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -84,6 +115,36 @@
 			isa = PBXGroup;
 			children = (
 				E1C37B641648297A00F1976D /* perceptualhash-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		E1C37B9316482E2100F1976D /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				E1C37B9416482E2100F1976D /* AppKit.framework */,
+				E1C37B9516482E2100F1976D /* CoreData.framework */,
+				E1C37B9616482E2100F1976D /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		E1C37B9716482E2100F1976D /* perceptualhash-tests */ = {
+			isa = PBXGroup;
+			children = (
+				E1C37B9D16482E2100F1976D /* perceptualhash_tests.h */,
+				E1C37B9E16482E2100F1976D /* perceptualhash_tests.m */,
+				E1C37B9816482E2100F1976D /* Supporting Files */,
+			);
+			path = "perceptualhash-tests";
+			sourceTree = "<group>";
+		};
+		E1C37B9816482E2100F1976D /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				E1C37B9916482E2100F1976D /* perceptualhash-tests-Info.plist */,
+				E1C37B9A16482E2100F1976D /* InfoPlist.strings */,
+				E1C37BA016482E2100F1976D /* perceptualhash-tests-Prefix.pch */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -108,6 +169,24 @@
 			productReference = E1C37B5A1648297A00F1976D /* perceptualhash */;
 			productType = "com.apple.product-type.tool";
 		};
+		E1C37B8E16482E2100F1976D /* perceptualhash-tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E1C37BA116482E2100F1976D /* Build configuration list for PBXNativeTarget "perceptualhash-tests" */;
+			buildPhases = (
+				E1C37B8A16482E2100F1976D /* Sources */,
+				E1C37B8B16482E2100F1976D /* Frameworks */,
+				E1C37B8C16482E2100F1976D /* Resources */,
+				E1C37B8D16482E2100F1976D /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "perceptualhash-tests";
+			productName = "perceptualhash-tests";
+			productReference = E1C37B8F16482E2100F1976D /* perceptualhash-tests.octest */;
+			productType = "com.apple.product-type.bundle";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -130,9 +209,37 @@
 			projectRoot = "";
 			targets = (
 				E1C37B591648297A00F1976D /* perceptualhash */,
+				E1C37B8E16482E2100F1976D /* perceptualhash-tests */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E1C37B8C16482E2100F1976D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1C37B9C16482E2100F1976D /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		E1C37B8D16482E2100F1976D /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E1C37B561648297A00F1976D /* Sources */ = {
@@ -143,7 +250,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E1C37B8A16482E2100F1976D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1C37B9F16482E2100F1976D /* perceptualhash_tests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		E1C37B9A16482E2100F1976D /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				E1C37B9B16482E2100F1976D /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		E1C37B671648297A00F1976D /* Debug */ = {
@@ -217,6 +343,32 @@
 			};
 			name = Release;
 		};
+		E1C37BA216482E2100F1976D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "perceptualhash-tests/perceptualhash-tests-Prefix.pch";
+				INFOPLIST_FILE = "perceptualhash-tests/perceptualhash-tests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Debug;
+		};
+		E1C37BA316482E2100F1976D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "perceptualhash-tests/perceptualhash-tests-Prefix.pch";
+				INFOPLIST_FILE = "perceptualhash-tests/perceptualhash-tests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -234,6 +386,14 @@
 			buildConfigurations = (
 				E1C37B6A1648297A00F1976D /* Debug */,
 				E1C37B6B1648297A00F1976D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		E1C37BA116482E2100F1976D /* Build configuration list for PBXNativeTarget "perceptualhash-tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E1C37BA216482E2100F1976D /* Debug */,
+				E1C37BA316482E2100F1976D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 		};
