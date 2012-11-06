@@ -1,0 +1,7 @@
+Interface
+
+$ perceptualhash [--dct | --marr-hildreth] image.jpg
+-> #######
+or
+return 1 on error, writes to stderr
+

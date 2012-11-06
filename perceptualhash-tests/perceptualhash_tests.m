@@ -8,25 +8,43 @@
 
 #import "perceptualhash_tests.h"
 
-@implementation perceptualhash_tests
+NSString *hexStringFromData(NSData *data)
+{
+  return nil;
+}
+
+NSData *dataFromHexString(NSString *str)
+{
+  return [NSData data];
+}
+
+@implementation perceptualhash_tests {
+  NSImage *_image;
+  NSData *_hash;
+}
 
 - (void)setUp
 {
-    [super setUp];
-    
-    // Set-up code here.
+  [super setUp];
+  
+  NSURL *url = [NSURL URLWithString:@"file:///Users/rgm/Dropbox/projects/moresby/perceptualhash/test/fixtures/original.jpg"];
+  _image = [[NSImage alloc] initWithContentsOfURL:url];
+  _hash = dataFromHexString(@"ab2351fcab2351fcab2351fcab2351fcab2351fcab2351fcab2351fcab2351fcab2351fc");
 }
 
 - (void)tearDown
 {
-    // Tear-down code here.
-    
-    [super tearDown];
+  // Tear-down code here.
+  [super tearDown];
 }
 
-- (void)testExample
+- (void)testEverything
 {
-    STFail(@"Unit tests are not implemented yet in perceptualhash-tests");
+  PHHasher *hasher = [PHHasher new];
+  NSData *hash = [hasher perceptualHashWithImage:_image];
+
+  STFail(@"fixme");
+  STAssertTrue([_hash isEqualToData:hash], @"should be equal");
 }
 
 @end

@@ -7,6 +7,7 @@
 //
 
 #import <SenTestingKit/SenTestingKit.h>
+#import "PHHasher.h"
 
 @interface perceptualhash_tests : SenTestCase
 
