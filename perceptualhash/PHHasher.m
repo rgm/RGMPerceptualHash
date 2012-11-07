@@ -16,6 +16,13 @@ typedef enum {
   PH_BLOCK_MEAN_VALUE,
 } PHAlgorithmType;
 
+int compare_chars(const void *a, const void *b)
+{
+  const unsigned char *ia = (const unsigned char *)a;
+  const unsigned char *ib = (const unsigned char *)b;
+  return (*ia - *ib);
+}
+
 const char *ph_NSDataToHexString(NSData *hash)
 {
   const unsigned char *dataBuffer = (const unsigned char *)[hash bytes];
@@ -217,6 +224,63 @@ NSData *ph_HexStringToNSData(const char *str)
   NSDictionary *opts = @{NSImageCompressionFactor : @1.0};
   NSData *imageData = [bitmapRep representationUsingType:NSJPEGFileType properties:opts];
   [imageData writeToFile:filename atomically:NO];
+
+  unsigned char blockMeans[HASH_LENGTH];
+  int runLength = NORMALIZED_DIM*NORMALIZED_DIM/HASH_LENGTH;
+  for (int i = 0; i < HASH_LENGTH; i++) {
+    long accumulator = 0;
+    for (int j = 0; j < runLength; j++) {
+      long currentValue = (long)newPixelBuffer[j+(i*runLength)*3];
+      accumulator += currentValue;
+    }
+    int mean = (int)roundtol((float)accumulator/runLength);
+    printf("%2d => %7ld %7d %5d\n", i, accumulator, runLength, mean);
+    blockMeans[i] = mean;
+    // get the run
+    // calculate the mean of the run
+    // store it in the blockMeans
+  }
+
+  unsigned char sortedBlockMeans[HASH_LENGTH];
+  memcpy(sortedBlockMeans, blockMeans, sizeof(blockMeans));
+  qsort(sortedBlockMeans, HASH_LENGTH, sizeof(unsigned char), compare_chars);
+
+  for (int i = 0; i < HASH_LENGTH; i++) {
+    printf("%3d => %3d\t%3d\n", i, blockMeans[i], sortedBlockMeans[i]);
+  }
+
+  unsigned char median = sortedBlockMeans[(int)floor(HASH_LENGTH-1)/2];
+  printf("median: %d\n", median);
+  // figure out the median value of means
+  // convert to a binary number as mean[i] < median => 0 else 1
+  unsigned char hash[HASH_LENGTH+1];
+  for (int i = 0; i < HASH_LENGTH; i++) {
+    if (blockMeans[i] < median) {
+      hash[i] = '0';
+    } else {
+      hash[i] = '1';
+    }
+  }
+  hash[HASH_LENGTH] = '\0';
+  printf("block hash binary: %s\n", hash); // 0111111110000000001101111111111111000111011111110000000000000000
+
+  unsigned char bitHash[HASH_LENGTH/8];
+  for (int i = 0; i < HASH_LENGTH/8; i++) {
+    bitHash[i] = 0;
+  }
+  for (int i = 0; i < HASH_LENGTH; i++) {
+    int charIndex = (i / 8);
+    int bitIndex = 7-(i % 8);
+    int blockMean = blockMeans[i];
+    if (blockMean >= median) {
+      bitHash[charIndex] |= (1 << bitIndex); // set the bit
+    }
+  }
+  printf("block hash hex: "); // expect 7F8037FFC77F0000
+  for (int i = 0; i < HASH_LENGTH/8; i++) {
+    printf("%02X", bitHash[i]);
+  }
+  printf("\n");
 
   free(contextBuffer);
 }
