@@ -10,6 +10,7 @@
 #import <QuartzCore/QuartzCore.h>
 
 #define NORMALIZED_DIM 512 //px
+#define GREY_LEVELS 255
 
 typedef enum {
   PH_BLOCK_MEAN_VALUE,
@@ -90,7 +91,7 @@ NSData *ph_HexStringToNSData(const char *str)
   CIImage *resizeResult = [resize valueForKey:kCIOutputImageKey];
   CIImage *result = [resizeResult imageByCroppingToRect:CGRectMake(0.0, 0.0, NORMALIZED_DIM, NORMALIZED_DIM)];
   CGImageRef cgImage = [context createCGImage:result fromRect:[result extent]];
-  [self printHistogram:cgImage];
+  [self histogramEqualize:cgImage];
   NSImage *normalizedImage = [[NSImage alloc] initWithCGImage:cgImage size:NSZeroSize];
   CFRelease(cgImage);
   free(buffer);
@@ -125,19 +126,14 @@ NSData *ph_HexStringToNSData(const char *str)
   return [NSNumber numberWithFloat:aspect];
 }
 
-- (void)printHistogram:(CGImageRef)cgImage;
+- (void)histogramEqualize:(CGImageRef)cgImage;
 // http://en.wikipedia.org/wiki/Histogram_equalization
 {
-  int histogram[255];
-  long cumulativeHistogram[255];
-  for (int j = 0; j < 255; j++) {
-    histogram[j] = 0;
-    cumulativeHistogram[j] = 0;
-  }
+
   int bytesPerRow = NORMALIZED_DIM * 4;
-  void *buffer = calloc(NORMALIZED_DIM, bytesPerRow);
+  void *contextBuffer = calloc(NORMALIZED_DIM, bytesPerRow);
   CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
-  CGContextRef ctxRef = CGBitmapContextCreate(buffer,
+  CGContextRef ctxRef = CGBitmapContextCreate(contextBuffer,
                                               NORMALIZED_DIM,
                                               NORMALIZED_DIM,
                                               8,
@@ -146,71 +142,70 @@ NSData *ph_HexStringToNSData(const char *str)
   CGContextDrawImage(ctxRef, CGRectMake(0, 0, CGImageGetWidth(cgImage), CGImageGetHeight(cgImage)), cgImage);
   CGContextRelease(ctxRef);
 
-  unsigned char *rawPixelData = (unsigned char *)buffer;
+  unsigned char *originalPixelBuffer = (unsigned char *)contextBuffer;
+
+  long histogram[GREY_LEVELS];
+  long cumulativeHistogram[GREY_LEVELS];
+  for (int j = 0; j < GREY_LEVELS; j++) {
+    histogram[j] = 0;
+    cumulativeHistogram[j] = 0;
+  }
   for (int i = 0; i < bytesPerRow*NORMALIZED_DIM; i+=4) {
-    int value = (int)rawPixelData[i];
+    int value = (int)originalPixelBuffer[i];
     histogram[value] += 1;
-//    printf("%02X %02X %02X %02X :: ", rawPixelData[i], rawPixelData[i+1], rawPixelData[i+2], rawPixelData[i+3]);
   }
   long cumulative = 0;
-  for (int j = 0; j < 255; j++) {
+  for (int j = 0; j < GREY_LEVELS; j++) {
     cumulative += histogram[j];
     cumulativeHistogram[j] = cumulative;
-    printf("%3d -> %5d\t(%6ld)\t", j, histogram[j], cumulativeHistogram[j]);
-    for (int k = 0; k < histogram[j] / 100; k++) {
-      printf("*");
-    }
-    printf("\n");
   }
 
   // figure out normalized cdf
-  int minValue = 0;
-  int maxValue = 254;
+  int minGreyLevel = 0;
+  int maxGreyLevel = GREY_LEVELS-1;
   while (true) {
-    if (histogram[minValue] != 0 || minValue >= 254) {
+    if (histogram[minGreyLevel] != 0 || minGreyLevel >= GREY_LEVELS-1) {
       break;
     } else {
-      minValue++;
+      minGreyLevel++;
     }
   }
   while (true) {
-    if (histogram[maxValue] != 0 || maxValue <= 0) {
+    if (histogram[maxGreyLevel] != 0 || maxGreyLevel <= 0) {
       break;
     } else {
-      maxValue--;
+      maxGreyLevel--;
     }
   }
-  printf("min: %d\nmax: %d\n", minValue, maxValue);
-  int adjustedValues[255];
-  for (int j = 1; j < 255; j++) {
-    float top = cumulativeHistogram[j] - cumulativeHistogram[minValue];
-    float bottom = NORMALIZED_DIM*NORMALIZED_DIM-cumulativeHistogram[minValue];
+  int adjustedValues[GREY_LEVELS];
+  for (int j = 1; j < GREY_LEVELS; j++) {
+    float top = cumulativeHistogram[j] - cumulativeHistogram[minGreyLevel];
+    float bottom = NORMALIZED_DIM*NORMALIZED_DIM-cumulativeHistogram[minGreyLevel];
     float divided = top/bottom;
-    float mult = divided*254;
+    float mult = divided*(GREY_LEVELS-1);
     adjustedValues[j] = (int)roundl(mult);
-    printf("%3d >> %6d\n", j, adjustedValues[j]);
   }
 
-  NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
-                                                                     pixelsWide:NORMALIZED_DIM
-                                                                     pixelsHigh:NORMALIZED_DIM
-                                                                  bitsPerSample:8
-                                                                samplesPerPixel:3
-                                                                       hasAlpha:NO
-                                                                       isPlanar:NO
-                                                                 colorSpaceName:NSDeviceRGBColorSpace
-                                                                   bitmapFormat:0
-                                                                    bytesPerRow:NORMALIZED_DIM*3
-                                                                   bitsPerPixel:24];
-
+  NSBitmapImageRep *bitmapRep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
+                                                                        pixelsWide:NORMALIZED_DIM
+                                                                        pixelsHigh:NORMALIZED_DIM
+                                                                     bitsPerSample:8
+                                                                   samplesPerPixel:3
+                                                                          hasAlpha:NO
+                                                                          isPlanar:NO
+                                                                    colorSpaceName:NSDeviceRGBColorSpace
+                                                                      bitmapFormat:0
+                                                                       bytesPerRow:NORMALIZED_DIM*3
+                                                                      bitsPerPixel:24];
+  
   NSImage *image = [NSImage new];
-  [image addRepresentation:bitmap];
+  [image addRepresentation:bitmapRep];
 
-  unsigned char *newPixelBuffer = [bitmap bitmapData];
+  unsigned char *newPixelBuffer = [bitmapRep bitmapData];
 
   for (int y = 0; y < NORMALIZED_DIM; y++) {
     for (int x = 0; x < NORMALIZED_DIM*3; x++) {
-      unsigned char oldValue = rawPixelData[(x+y*NORMALIZED_DIM)*4];
+      unsigned char oldValue = originalPixelBuffer[(x+y*NORMALIZED_DIM)*4]; // original has alpha, hence 4
       unsigned char newValue = adjustedValues[oldValue];
       newPixelBuffer[(x+y*NORMALIZED_DIM)*3 + 0] = newValue;
       newPixelBuffer[(x+y*NORMALIZED_DIM)*3 + 1] = newValue;
@@ -220,10 +215,10 @@ NSData *ph_HexStringToNSData(const char *str)
 
   NSString *filename = @"/Users/rgm/Desktop/testimage2.jpg";
   NSDictionary *opts = @{NSImageCompressionFactor : @1.0};
-  NSData *imageData = [bitmap representationUsingType:NSJPEGFileType properties:opts];
+  NSData *imageData = [bitmapRep representationUsingType:NSJPEGFileType properties:opts];
   [imageData writeToFile:filename atomically:NO];
 
-  free(buffer);
+  free(contextBuffer);
 }
 
 - (NSData *)perceptualColorCubeWithSize:(const unsigned int)size

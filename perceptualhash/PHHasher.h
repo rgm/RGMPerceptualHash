@@ -8,7 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-#define HASH_LENGTH 64
+#define HASH_LENGTH 64 // bits
 
 const char *ph_NSDataToHexString(NSData *hash);
 NSData *ph_HexStringToNSData(const char *str);
