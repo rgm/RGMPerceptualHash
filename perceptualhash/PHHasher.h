@@ -8,14 +8,15 @@
 
 #import <Cocoa/Cocoa.h>
 
-#define HASH_LENGTH 128 // bits
 
 const char *ph_NSDataToHexString(NSData *hash);
 NSData *ph_HexStringToNSData(const char *str);
 
 @interface PHHasher : NSObject
 
-- (NSData *)perceptualHashWithImage:(NSImage *)image;
-- (NSImage *)normalizeImage:(NSImage *)image;
+@property NSURL *url;
+@property BOOL debug;
+
+- (NSData *)perceptualHash;
 
 @end

@@ -9,15 +9,15 @@
 #import "PHHasher.h"
 #import <QuartzCore/QuartzCore.h>
 
-#define NORMALIZED_DIM 512 //px
-#define GREY_LEVELS 255
-
-typedef enum {
-  PH_BLOCK_MEAN_VALUE,
-} PHAlgorithmType;
+#define HASH_LENGTH          128   // bits
+#define NORMALIZED_DIM       512   // px
+#define GREY_LEVELS          255
+#define INPUT_CUBE_DIMENSION 64
+#define BLUR_RADIUS          20.0f
 
 int compare_chars(const void *a, const void *b)
 {
+  // for qsort
   const unsigned char *ia = (const unsigned char *)a;
   const unsigned char *ib = (const unsigned char *)b;
   return (*ia - *ib);
@@ -26,14 +26,14 @@ int compare_chars(const void *a, const void *b)
 const char *ph_NSDataToHexString(NSData *hash)
 {
   const unsigned char *dataBuffer = (const unsigned char *)[hash bytes];
-  
+
   if (!dataBuffer) {
     return [[NSString string] cStringUsingEncoding:NSASCIIStringEncoding];
   }
 
   NSUInteger dataLength = [hash length];
   NSMutableString *hexString = [NSMutableString stringWithCapacity:(dataLength * 2)];
-  
+
   for (int i = 0; i < dataLength; ++i) {
     [hexString appendString:[NSString stringWithFormat:@"%02lx", (unsigned long)dataBuffer[i]]];
   }
@@ -47,29 +47,61 @@ NSData *ph_HexStringToNSData(const char *str)
 
 @implementation PHHasher
 
-- (NSData *)perceptualHashWithImage:(NSImage *)image
+- (id)init
 {
+  self = [super init];
+  if (self) {
+    _url   = nil;
+    _debug = NO;
+  }
+  return self;
+}
+
+- (void)writeImageRepToDisk:(NSBitmapImageRep *)rep withSuffix:(NSString *)ext
+{
+  NSDictionary *opts = @{NSImageCompressionFactor : @1.0};
+  NSURL *desktop = [[NSURL alloc] initFileURLWithPath:@"/Users/rgm/Desktop/"];
+  NSString *filename = [self.url lastPathComponent];
+  NSString *extension = [filename pathExtension];
+  NSString *shortFilename = [filename stringByDeletingPathExtension];
+  NSString *newFilename = [[NSString stringWithFormat:@"%@-%@", shortFilename, ext]
+                        stringByAppendingPathExtension:extension];
+  NSURL *fullPath = [desktop URLByAppendingPathComponent:newFilename];
+
+  NSData *imageData = [rep representationUsingType:NSJPEGFileType properties:opts];
+  [imageData writeToFile:[fullPath path] atomically:NO];
+}
+
+- (NSData *)perceptualHash
+{
+  NSImage *image = [[NSImage alloc] initWithContentsOfURL:self.url];
+  NSBitmapImageRep *rep = [NSBitmapImageRep imageRepWithData: [[self normalizeImage:image] TIFFRepresentation]];
+  //if (self.debug) {
+    //[self writeImageRepToDisk:rep withSuffix:@"blurred"];
+  //}
   NSImage *normalizedImage = image;
-  NSData *buffer = [self hashImage: normalizedImage withAlgorithm:PH_BLOCK_MEAN_VALUE];
+  NSData *buffer = [self hashImage: normalizedImage];
   return [buffer copy];
 }
 
 - (NSImage *)normalizeImage:(NSImage *)image
 {
-  // use core image false colour?
-  // strip all but luminance channel
-  // 1.0 isotropic blur
-  // resize to 512 x 512, bicubic
-  // equalize to 256 grey levels
-  // Y = 0.2126 R + 0.7152 G + 0.0722 B per http://en.wikipedia.org/wiki/Luminance_(relative) ... colour cube?
-  CIFilter *luminance = [CIFilter filterWithName:@"CIColorCube"];
+
+  //
+  // perceptual luminance only -> blur -> resize to 512x512 -> histogram
+  // equalize over GREY_LEVELS
+  //
+
+  CIFilter *luminance   = [CIFilter filterWithName:@"CIColorCube"];
   CIFilter *affineClamp = [CIFilter filterWithName:@"CIAffineClamp"];
-  CIFilter *blur = [CIFilter filterWithName:@"CIGaussianBlur"];
-  CIFilter *resize = [CIFilter filterWithName:@"CILanczosScaleTransform"];
-  //  CIFilter *equalize;
+  CIFilter *blur        = [CIFilter filterWithName:@"CIGaussianBlur"];
+  CIFilter *resize      = [CIFilter filterWithName:@"CILanczosScaleTransform"];
+
   CIImage *sourceImage = [CIImage imageWithData:[image TIFFRepresentation]];
-  int bytesPerRow = NORMALIZED_DIM * 4;
-  void *buffer = calloc(NORMALIZED_DIM, bytesPerRow);
+
+  // make up off-screen context
+  int bytesPerRow            = NORMALIZED_DIM * 4;
+  void *buffer               = calloc(NORMALIZED_DIM, bytesPerRow);
   CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
   CGContextRef ctxRef = CGBitmapContextCreate(buffer,
                                               NORMALIZED_DIM,
@@ -79,43 +111,48 @@ NSData *ph_HexStringToNSData(const char *str)
   CIContext *context = [CIContext contextWithCGContext:ctxRef options:nil];
   CGColorSpaceRelease(colorSpace);
   CGContextRelease(ctxRef);
+
+  // configure & chain CI filters
   [luminance setDefaults];
   [luminance setValue:sourceImage forKey:kCIInputImageKey];
-  [luminance setValue:@64.0 forKey:@"inputCubeDimension"];
-  [luminance setValue:[self perceptualColorCubeWithSize:64] forKey:@"inputCubeData"];
+  [luminance setValue:@INPUT_CUBE_DIMENSION forKey:@"inputCubeDimension"];
+  [luminance setValue:[self perceptualColorCubeWithSize:INPUT_CUBE_DIMENSION]
+               forKey:@"inputCubeData"];
   CIImage *luminanceResult = [luminance valueForKey:kCIOutputImageKey];
+
 //  [affineClamp setDefaults]; // to remove white fringe on blur
 //  [affineClamp setValue:luminanceResult forKey:kCIInputImageKey];
 //  CIImage *affineResult = [affineClamp valueForKey:kCIOutputImageKey];
+
   [blur setDefaults];
   [blur setValue:luminanceResult forKey:kCIInputImageKey];
-  [blur setValue:@20.0f forKey:@"inputRadius"];
+  [blur setValue:@BLUR_RADIUS forKey:@"inputRadius"];
   CIImage *blurResult = [blur valueForKey:kCIOutputImageKey];
+
   [resize setDefaults];
   [resize setValue:[self scaleFactor:image] forKey:@"inputScale"];
   [resize setValue:[self aspectRatio:image] forKey:@"inputAspectRatio"];
   [resize setValue:blurResult forKey:kCIInputImageKey];
   CIImage *resizeResult = [resize valueForKey:kCIOutputImageKey];
-  CIImage *result = [resizeResult imageByCroppingToRect:CGRectMake(0.0, 0.0, NORMALIZED_DIM, NORMALIZED_DIM)];
+
+  CGRect cropRect = CGRectMake(0, 0, NORMALIZED_DIM, NORMALIZED_DIM);
+  CIImage *result = [resizeResult imageByCroppingToRect: cropRect];
+
   CGImageRef cgImage = [context createCGImage:result fromRect:[result extent]];
   [self histogramEqualize:cgImage];
   NSImage *normalizedImage = [[NSImage alloc] initWithCGImage:cgImage size:NSZeroSize];
+
+  CGContextRelease(ctxRef);
   CFRelease(cgImage);
   free(buffer);
 
   return normalizedImage;
 }
 
-- (NSData *)hashImage:(NSImage *)image withAlgorithm:(PHAlgorithmType)algorithm
+- (NSData *)hashImage:(NSImage *)image
 {
   NSData *buffer = nil;
-  switch (algorithm) {
-    case PH_BLOCK_MEAN_VALUE : {
-      buffer = [image TIFFRepresentation];
-    };
-    default: {
-    };
-  }
+  buffer = [image TIFFRepresentation];
   return buffer;
 }
 
@@ -137,6 +174,7 @@ NSData *ph_HexStringToNSData(const char *str)
 // http://en.wikipedia.org/wiki/Histogram_equalization
 {
 
+  // draw into a context buffer to get the raw pixels
   int bytesPerRow = NORMALIZED_DIM * 4;
   void *contextBuffer = calloc(NORMALIZED_DIM, bytesPerRow);
   CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
@@ -147,7 +185,6 @@ NSData *ph_HexStringToNSData(const char *str)
                                               bytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast);
   CGColorSpaceRelease(colorSpace);
   CGContextDrawImage(ctxRef, CGRectMake(0, 0, CGImageGetWidth(cgImage), CGImageGetHeight(cgImage)), cgImage);
-  CGContextRelease(ctxRef);
 
   unsigned char *originalPixelBuffer = (unsigned char *)contextBuffer;
 
@@ -204,7 +241,7 @@ NSData *ph_HexStringToNSData(const char *str)
                                                                       bitmapFormat:0
                                                                        bytesPerRow:NORMALIZED_DIM*3
                                                                       bitsPerPixel:24];
-  
+
   NSImage *image = [NSImage new];
   [image addRepresentation:bitmapRep];
 
@@ -220,38 +257,31 @@ NSData *ph_HexStringToNSData(const char *str)
     }
   }
 
-  NSString *filename = @"/Users/rgm/Desktop/testimage2.jpg";
-  NSDictionary *opts = @{NSImageCompressionFactor : @1.0};
-  NSData *imageData = [bitmapRep representationUsingType:NSJPEGFileType properties:opts];
-  [imageData writeToFile:filename atomically:NO];
-
-  unsigned char blockMeans[HASH_LENGTH];
-  int runLength = NORMALIZED_DIM*NORMALIZED_DIM/HASH_LENGTH;
-  for (int i = 0; i < HASH_LENGTH; i++) {
-    long accumulator = 0;
-    for (int j = 0; j < runLength; j++) {
-      long currentValue = (long)newPixelBuffer[j+(i*runLength)*3];
-      accumulator += currentValue;
-    }
-    int mean = (int)roundtol((float)accumulator/runLength);
-    printf("%2d => %7ld %7d %5d\n", i, accumulator, runLength, mean);
-    blockMeans[i] = mean;
-    // get the run
-    // calculate the mean of the run
-    // store it in the blockMeans
+  if (self.debug) {
+    [self writeImageRepToDisk:bitmapRep withSuffix:@"normalized"];
   }
 
+  // assemble block means
+  unsigned char blockMeans[HASH_LENGTH];
+  int blockLength = NORMALIZED_DIM*NORMALIZED_DIM/HASH_LENGTH;
+  for (int i = 0; i < HASH_LENGTH; i++) {
+    long accumulator = 0;
+    for (int j = 0; j < blockLength; j++) {
+      // accumulate over the block
+      long currentValue = (long)newPixelBuffer[j+(i*blockLength)*3];
+      accumulator += currentValue;
+    }
+    int mean = (int)roundtol((float)accumulator/blockLength);
+    blockMeans[i] = mean;
+  }
+
+  // find the median value
   unsigned char sortedBlockMeans[HASH_LENGTH];
   memcpy(sortedBlockMeans, blockMeans, sizeof(blockMeans));
   qsort(sortedBlockMeans, HASH_LENGTH, sizeof(unsigned char), compare_chars);
-
-  for (int i = 0; i < HASH_LENGTH; i++) {
-    printf("%3d => %3d\t%3d\n", i, blockMeans[i], sortedBlockMeans[i]);
-  }
-
   unsigned char median = sortedBlockMeans[(int)floor(HASH_LENGTH-1)/2];
-  printf("median: %d\n", median);
-  // figure out the median value of means
+
+  // figure out hash as a binary string
   // convert to a binary number as mean[i] < median => 0 else 1
   unsigned char hash[HASH_LENGTH+1];
   for (int i = 0; i < HASH_LENGTH; i++) {
@@ -262,8 +292,9 @@ NSData *ph_HexStringToNSData(const char *str)
     }
   }
   hash[HASH_LENGTH] = '\0';
-  printf("block hash binary: %s\n", hash); // 0111111110000000001101111111111111000111011111110000000000000000
+  printf("block hash bin:\t%s\n", hash);
 
+  // figure out hash as HASH_LENGTH/8 hex bytes
   unsigned char bitHash[HASH_LENGTH/8];
   for (int i = 0; i < HASH_LENGTH/8; i++) {
     bitHash[i] = 0;
@@ -276,7 +307,7 @@ NSData *ph_HexStringToNSData(const char *str)
       bitHash[charIndex] |= (1 << bitIndex); // set the bit
     }
   }
-  printf("block hash hex: "); // expect 7F8037FFC77F0000
+  printf("block hash hex:\t");
   for (int i = 0; i < HASH_LENGTH/8; i++) {
     printf("%02X", bitHash[i]);
   }
@@ -287,23 +318,26 @@ NSData *ph_HexStringToNSData(const char *str)
 
 - (NSData *)perceptualColorCubeWithSize:(const unsigned int)size
 {
-  // Y = 0.2126 R + 0.7152 G + 0.0722 B per http://en.wikipedia.org/wiki/Luminance_(relative)
+
+  // Y = 0.2126 R + 0.7152 G + 0.0722 B
+  // per http://en.wikipedia.org/wiki/Luminance_(relative)
+
   int cubeDataSize = size * size * size * sizeof(float)*4;
   struct colorPoint { float r, g, b, a; };
   struct colorPoint cubeData[size][size][size];
   float rgb[3];
-  float redFactor = 0.2126;
-  float greenFactor = 0.7152;
-  float blueFactor = 0.0722;
+  const float redFactor   = 0.2126; // empirical
+  const float greenFactor = 0.7152; // empirical
+  const float blueFactor  = 0.0722; // empirical
 
-  for (int b = 0; b < size; b++) {
-    rgb[2] = ((float) b) / (size-1); // blue
-    for (int g = 0; g < size; g++) {
-      rgb[1] = ((float) g / (size-1)); // green
-      for (int r = 0; r < size; r++) {
-        rgb[0] = ((float) r / (size-1)); // red
+  for (int blue = 0; blue < size; blue++) {
+    rgb[2] = ((float) blue) / (size-1);
+    for (int green = 0; green < size; green++) {
+      rgb[1] = ((float) green / (size-1));
+      for (int red = 0; red < size; red++) {
+        rgb[0] = ((float) red / (size-1));
         float luminance = (rgb[0]*redFactor) + (rgb[1]*greenFactor) + (rgb[2]*blueFactor);
-        cubeData[r][g][b] = (struct colorPoint){luminance, luminance, luminance, 1.0};
+        cubeData[red][green][blue] = (struct colorPoint){luminance, luminance, luminance, 1.0};
       }
     }
   }

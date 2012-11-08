@@ -9,17 +9,6 @@
 #import <Cocoa/Cocoa.h>
 #import "PHHasher.h"
 
-void save(NSImage *image)
-{
-  NSString *filename = @"/Users/rgm/Desktop/testimage.jpg";
-  NSData *imageData = [image TIFFRepresentation];
-  NSBitmapImageRep *imageRep = [NSBitmapImageRep imageRepWithData:imageData];
-  NSDictionary *opts = @{NSImageCompressionFactor : @1.0};
-  imageData = [imageRep representationUsingType:NSJPEGFileType properties:opts];
-  [imageData writeToFile:filename atomically:NO];
-
-}
-
 int main(int argc, const char * argv[])
 {
 
@@ -29,12 +18,12 @@ int main(int argc, const char * argv[])
   }
 
   @autoreleasepool {
-    NSURL *url = [[NSURL alloc] initFileURLWithPath:[NSString stringWithCString:argv[1] encoding:NSUTF8StringEncoding]];
-    NSImage *image = [[NSImage alloc] initWithContentsOfURL:url];
     PHHasher *hasher = [PHHasher new];
-    NSData *hash = [hasher perceptualHashWithImage:image];
-//    printf("%s\n", ph_NSDataToHexString(hash));
-    save([hasher normalizeImage:image]);
+    hasher.url       = [[NSURL alloc]
+                        initFileURLWithPath:[NSString stringWithCString:argv[1]
+                                                               encoding:NSUTF8StringEncoding]];
+    hasher.debug     = YES;
+    [hasher perceptualHash];
   }
   return 0;
 }
