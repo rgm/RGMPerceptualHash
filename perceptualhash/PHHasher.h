@@ -8,10 +8,6 @@
 
 #import <Cocoa/Cocoa.h>
 
-
-const char *ph_NSDataToHexString(NSData *hash);
-NSData *ph_HexStringToNSData(const char *str);
-
 @interface PHHasher : NSObject
 
 @property NSURL *url;

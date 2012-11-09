@@ -73,10 +73,10 @@
   [luminance setDefaults];
   [luminance setValue:sourceImage forKey:kCIInputImageKey];
   [luminance setValue:@INPUT_CUBE_DIMENSION forKey:@"inputCubeDimension"];
-  [luminance setValue:[self perceptualColorCubeWithSize:INPUT_CUBE_DIMENSION]
+  [luminance setValue:[self luminanceCubeWithSteps:INPUT_CUBE_DIMENSION]
                forKey:@"inputCubeData"];
   CIImage *luminanceResult = [luminance valueForKey:kCIOutputImageKey];
-  if (self.debug) { [self writeCIImageToDisk:luminanceResult WithSuffix:@"luminance"]; }
+//  if (self.debug) { [self writeCIImageToDisk:luminanceResult WithSuffix:@"luminance"]; }
 
   // affine clamp to avoid the white edge fringing
   [affineClamp setDefaults];
@@ -100,14 +100,14 @@
                                                    W:initialExtent.size.height];
   [crop setValue:originalCropRect forKey:@"inputRectangle"];
   CIImage *cropResult = [crop valueForKey:kCIOutputImageKey];
-  if (self.debug) { [self writeCIImageToDisk:cropResult WithSuffix:@"blur"]; }
+//  if (self.debug) { [self writeCIImageToDisk:cropResult WithSuffix:@"blur"]; }
 
   [resize setDefaults];
-  [resize setValue:[self scaleFactor:image] forKey:@"inputScale"];
-  [resize setValue:[self aspectRatio:image] forKey:@"inputAspectRatio"];
+  [resize setValue:[self scaleFactor:initialExtent] forKey:@"inputScale"];
+  [resize setValue:[self aspectRatio:initialExtent] forKey:@"inputAspectRatio"];
   [resize setValue:cropResult forKey:kCIInputImageKey];
   CIImage *resizeResult = [resize valueForKey:kCIOutputImageKey];
-  if (self.debug) { [self writeCIImageToDisk:resizeResult WithSuffix:@"resize"]; }
+//  if (self.debug) { [self writeCIImageToDisk:resizeResult WithSuffix:@"resize"]; }
 
   CGRect smallCropRect = CGRectMake(0, 0, NORMALIZED_DIM, NORMALIZED_DIM);
   CIImage *result = [resizeResult imageByCroppingToRect: smallCropRect];
@@ -128,20 +128,6 @@
   NSData *buffer = nil;
   buffer = [image TIFFRepresentation];
   return buffer;
-}
-
-- (NSNumber *)scaleFactor:(NSImage *)image
-{
-  CGFloat scale = NORMALIZED_DIM / image.size.height;
-  return [NSNumber numberWithFloat:scale];
-}
-
-- (NSNumber *)aspectRatio:(NSImage *)image
-{
-  CGFloat scale = [[self scaleFactor:image] floatValue];
-  CGFloat scaledX = image.size.width * scale;
-  CGFloat aspect = NORMALIZED_DIM / scaledX;
-  return [NSNumber numberWithFloat:aspect];
 }
 
 - (void)histogramEqualize:(CGImageRef)cgImage;
@@ -231,9 +217,9 @@
     }
   }
 
-  if (self.debug) {
-    [self writeImageRepToDisk:bitmapRep withSuffix:@"normalized"];
-  }
+//  if (self.debug) {
+//    [self writeImageRepToDisk:bitmapRep withSuffix:@"normalized"];
+//  }
 
   // assemble block means
   unsigned char blockMeans[HASH_LENGTH];
@@ -257,16 +243,16 @@
 
   // figure out hash as a binary string
   // convert to a binary number as mean[i] < median => 0 else 1
-  unsigned char hash[HASH_LENGTH+1];
-  for (int i = 0; i < HASH_LENGTH; i++) {
-    if (blockMeans[i] < median) {
-      hash[i] = '0';
-    } else {
-      hash[i] = '1';
-    }
-  }
-  hash[HASH_LENGTH] = '\0';
-  printf("block hash bin:\t%s\n", hash);
+//  unsigned char hash[HASH_LENGTH+1];
+//  for (int i = 0; i < HASH_LENGTH; i++) {
+//    if (blockMeans[i] < median) {
+//      hash[i] = '0';
+//    } else {
+//      hash[i] = '1';
+//    }
+//  }
+//  hash[HASH_LENGTH] = '\0';
+//  printf("block hash bin:\t%s\n", hash);
 
   // figure out hash as HASH_LENGTH/8 hex bytes
   unsigned char bitHash[HASH_LENGTH/8];
@@ -290,26 +276,30 @@
   free(contextBuffer);
 }
 
-- (NSData *)perceptualColorCubeWithSize:(const unsigned int)size
+# pragma mark calculating the hash
+
+# pragma mark CoreImage helpers
+
+- (NSData *)luminanceCubeWithSteps:(const unsigned int)steps
 {
 
   // Y = 0.2126 R + 0.7152 G + 0.0722 B
   // per http://en.wikipedia.org/wiki/Luminance_(relative)
 
-  int cubeDataSize = size * size * size * sizeof(float)*4;
+  int cubeDataSize = steps * steps * steps * sizeof(float)*4;
   struct colorPoint { float r, g, b, a; };
-  struct colorPoint cubeData[size][size][size];
+  struct colorPoint cubeData[steps][steps][steps];
   float rgb[3];
   const float redFactor   = 0.2126; // empirical
   const float greenFactor = 0.7152; // empirical
   const float blueFactor  = 0.0722; // empirical
 
-  for (int blue = 0; blue < size; blue++) {
-    rgb[2] = ((float) blue) / (size-1);
-    for (int green = 0; green < size; green++) {
-      rgb[1] = ((float) green / (size-1));
-      for (int red = 0; red < size; red++) {
-        rgb[0] = ((float) red / (size-1));
+  for (int blue = 0; blue < steps; blue++) {
+    rgb[2] = ((float) blue) / (steps-1);
+    for (int green = 0; green < steps; green++) {
+      rgb[1] = ((float) green / (steps-1));
+      for (int red = 0; red < steps; red++) {
+        rgb[0] = ((float) red / (steps-1));
         float luminance = (rgb[0]*redFactor) + (rgb[1]*greenFactor) + (rgb[2]*blueFactor);
         cubeData[red][green][blue] = (struct colorPoint){luminance, luminance, luminance, 1.0};
       }
@@ -320,7 +310,40 @@
   return data;
 }
 
-# pragma mark debugging
+
+- (NSNumber *)scaleFactor:(CGRect)originalRect
+{
+  CGFloat scale = NORMALIZED_DIM / originalRect.size.height;
+  return [NSNumber numberWithFloat:scale];
+}
+
+- (NSNumber *)aspectRatio:(CGRect)originalRect
+{
+  CGFloat scale = [[self scaleFactor:originalRect] floatValue];
+  CGFloat scaledX = originalRect.size.width * scale;
+  CGFloat aspect = NORMALIZED_DIM / scaledX;
+  return [NSNumber numberWithFloat:aspect];
+}
+
+# pragma mark debugging crap
+
+- (void)writeCIImageToDisk:(CIImage *)ciImage WithSuffix:(NSString *)ext
+{
+  NSBitmapImageRep *rep = [[NSBitmapImageRep alloc] initWithCIImage:ciImage];
+  [self writeImageRepToDisk:rep withSuffix:ext];
+}
+
+- (void)writeCGImageToDisk:(CGImageRef)cgImage WithSuffix:(NSString *)ext
+{
+  NSBitmapImageRep *rep = [[NSBitmapImageRep alloc] initWithCGImage:cgImage];
+  [self writeImageRepToDisk:rep withSuffix:ext];
+}
+
+- (void)writeNSImageToDisk:(NSImage *)image withSuffix:(NSString *)ext
+{
+  NSBitmapImageRep *rep = [[NSBitmapImageRep alloc] initWithData:[image TIFFRepresentation]];
+  [self writeImageRepToDisk:rep withSuffix:ext];
+}
 
 - (void)writeImageRepToDisk:(NSBitmapImageRep *)rep withSuffix:(NSString *)ext
 {
@@ -335,12 +358,6 @@
 
   NSData *imageData = [rep representationUsingType:NSJPEGFileType properties:opts];
   [imageData writeToFile:[fullPath path] atomically:NO];
-}
-
-- (void)writeCIImageToDisk:(CIImage *)ciImage WithSuffix:(NSString *)ext
-{
-  NSBitmapImageRep *rep = [[NSBitmapImageRep alloc] initWithCIImage:ciImage];
-  [self writeImageRepToDisk:rep withSuffix:ext];
 }
 
 
