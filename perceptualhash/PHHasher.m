@@ -6,44 +6,15 @@
 //  Copyright (c) 2012 Ryan McCuaig. All rights reserved.
 //
 
-#import "PHHasher.h"
 #import <QuartzCore/QuartzCore.h>
+#import "PHHasher.h"
+#import "PHUtility.h"
 
 #define HASH_LENGTH          128   // bits
 #define NORMALIZED_DIM       512   // px
 #define GREY_LEVELS          255
 #define INPUT_CUBE_DIMENSION 64
-#define BLUR_RADIUS          20.0f
-
-int compare_chars(const void *a, const void *b)
-{
-  // for qsort
-  const unsigned char *ia = (const unsigned char *)a;
-  const unsigned char *ib = (const unsigned char *)b;
-  return (*ia - *ib);
-}
-
-const char *ph_NSDataToHexString(NSData *hash)
-{
-  const unsigned char *dataBuffer = (const unsigned char *)[hash bytes];
-
-  if (!dataBuffer) {
-    return [[NSString string] cStringUsingEncoding:NSASCIIStringEncoding];
-  }
-
-  NSUInteger dataLength = [hash length];
-  NSMutableString *hexString = [NSMutableString stringWithCapacity:(dataLength * 2)];
-
-  for (int i = 0; i < dataLength; ++i) {
-    [hexString appendString:[NSString stringWithFormat:@"%02lx", (unsigned long)dataBuffer[i]]];
-  }
-  return [hexString cStringUsingEncoding:NSASCIIStringEncoding];
-}
-
-NSData *ph_HexStringToNSData(const char *str)
-{
-  return nil;
-}
+#define BLUR_RADIUS          20.0f // px
 
 @implementation PHHasher
 
@@ -57,29 +28,10 @@ NSData *ph_HexStringToNSData(const char *str)
   return self;
 }
 
-- (void)writeImageRepToDisk:(NSBitmapImageRep *)rep withSuffix:(NSString *)ext
-{
-  NSDictionary *opts = @{NSImageCompressionFactor : @1.0};
-  NSURL *desktop = [[NSURL alloc] initFileURLWithPath:@"/Users/rgm/Desktop/"];
-  NSString *filename = [self.url lastPathComponent];
-  NSString *extension = [filename pathExtension];
-  NSString *shortFilename = [filename stringByDeletingPathExtension];
-  NSString *newFilename = [[NSString stringWithFormat:@"%@-%@", shortFilename, ext]
-                        stringByAppendingPathExtension:extension];
-  NSURL *fullPath = [desktop URLByAppendingPathComponent:newFilename];
-
-  NSData *imageData = [rep representationUsingType:NSJPEGFileType properties:opts];
-  [imageData writeToFile:[fullPath path] atomically:NO];
-}
-
 - (NSData *)perceptualHash
 {
   NSImage *image = [[NSImage alloc] initWithContentsOfURL:self.url];
-  NSBitmapImageRep *rep = [NSBitmapImageRep imageRepWithData: [[self normalizeImage:image] TIFFRepresentation]];
-  //if (self.debug) {
-    //[self writeImageRepToDisk:rep withSuffix:@"blurred"];
-  //}
-  NSImage *normalizedImage = image;
+  NSImage *normalizedImage = [self normalizeImage:image];
   NSData *buffer = [self hashImage: normalizedImage];
   return [buffer copy];
 }
@@ -95,20 +47,25 @@ NSData *ph_HexStringToNSData(const char *str)
   CIFilter *luminance   = [CIFilter filterWithName:@"CIColorCube"];
   CIFilter *affineClamp = [CIFilter filterWithName:@"CIAffineClamp"];
   CIFilter *blur        = [CIFilter filterWithName:@"CIGaussianBlur"];
+  CIFilter *crop        = [CIFilter filterWithName:@"CICrop"];
   CIFilter *resize      = [CIFilter filterWithName:@"CILanczosScaleTransform"];
 
   CIImage *sourceImage = [CIImage imageWithData:[image TIFFRepresentation]];
+  CGRect initialExtent = [sourceImage extent];
 
   // make up off-screen context
-  int bytesPerRow            = NORMALIZED_DIM * 4;
-  void *buffer               = calloc(NORMALIZED_DIM, bytesPerRow);
+  int bytesPerRow            = initialExtent.size.width * 4;
+  void *buffer               = calloc(initialExtent.size.height, bytesPerRow);
   CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
-  CGContextRef ctxRef = CGBitmapContextCreate(buffer,
-                                              NORMALIZED_DIM,
-                                              NORMALIZED_DIM,
-                                              8,
-                                              bytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast);
-  CIContext *context = [CIContext contextWithCGContext:ctxRef options:nil];
+  CGContextRef ctxRef        = CGBitmapContextCreate(buffer,
+                                                     initialExtent.size.width,
+                                                     initialExtent.size.height,
+                                                     8,
+                                                     bytesPerRow,
+                                                     colorSpace,
+                                                     kCGImageAlphaPremultipliedLast);
+  CIContext *context         = [CIContext contextWithCGContext:ctxRef
+                                                       options:nil];
   CGColorSpaceRelease(colorSpace);
   CGContextRelease(ctxRef);
 
@@ -119,24 +76,41 @@ NSData *ph_HexStringToNSData(const char *str)
   [luminance setValue:[self perceptualColorCubeWithSize:INPUT_CUBE_DIMENSION]
                forKey:@"inputCubeData"];
   CIImage *luminanceResult = [luminance valueForKey:kCIOutputImageKey];
+  if (self.debug) { [self writeCIImageToDisk:luminanceResult WithSuffix:@"luminance"]; }
 
-//  [affineClamp setDefaults]; // to remove white fringe on blur
-//  [affineClamp setValue:luminanceResult forKey:kCIInputImageKey];
-//  CIImage *affineResult = [affineClamp valueForKey:kCIOutputImageKey];
+  // affine clamp to avoid the white edge fringing
+  [affineClamp setDefaults];
+  [affineClamp setValue:luminanceResult forKey:kCIInputImageKey];
+  NSAffineTransform *identityTransform = [NSAffineTransform transform];
+  [affineClamp setValue:identityTransform forKey:@"inputTransform"];
+  CIImage *affineResult = [affineClamp valueForKey:kCIOutputImageKey];
 
   [blur setDefaults];
-  [blur setValue:luminanceResult forKey:kCIInputImageKey];
+  [blur setValue:affineResult forKey:kCIInputImageKey];
   [blur setValue:@BLUR_RADIUS forKey:@"inputRadius"];
   CIImage *blurResult = [blur valueForKey:kCIOutputImageKey];
+
+  // need a crop to pull the affine clamped image back
+  // from infinite extents
+  [crop setDefaults];
+  [crop setValue:blurResult forKey:kCIInputImageKey];
+  CIVector *originalCropRect = [CIVector vectorWithX:initialExtent.origin.x
+                                                   Y:initialExtent.origin.y
+                                                   Z:initialExtent.size.width
+                                                   W:initialExtent.size.height];
+  [crop setValue:originalCropRect forKey:@"inputRectangle"];
+  CIImage *cropResult = [crop valueForKey:kCIOutputImageKey];
+  if (self.debug) { [self writeCIImageToDisk:cropResult WithSuffix:@"blur"]; }
 
   [resize setDefaults];
   [resize setValue:[self scaleFactor:image] forKey:@"inputScale"];
   [resize setValue:[self aspectRatio:image] forKey:@"inputAspectRatio"];
-  [resize setValue:blurResult forKey:kCIInputImageKey];
+  [resize setValue:cropResult forKey:kCIInputImageKey];
   CIImage *resizeResult = [resize valueForKey:kCIOutputImageKey];
+  if (self.debug) { [self writeCIImageToDisk:resizeResult WithSuffix:@"resize"]; }
 
-  CGRect cropRect = CGRectMake(0, 0, NORMALIZED_DIM, NORMALIZED_DIM);
-  CIImage *result = [resizeResult imageByCroppingToRect: cropRect];
+  CGRect smallCropRect = CGRectMake(0, 0, NORMALIZED_DIM, NORMALIZED_DIM);
+  CIImage *result = [resizeResult imageByCroppingToRect: smallCropRect];
 
   CGImageRef cgImage = [context createCGImage:result fromRect:[result extent]];
   [self histogramEqualize:cgImage];
@@ -345,5 +319,29 @@ NSData *ph_HexStringToNSData(const char *str)
   NSData *data = [NSData dataWithBytes:cubeData length:cubeDataSize];
   return data;
 }
+
+# pragma mark debugging
+
+- (void)writeImageRepToDisk:(NSBitmapImageRep *)rep withSuffix:(NSString *)ext
+{
+  NSDictionary *opts = @{NSImageCompressionFactor : @1.0};
+  NSURL *desktop = [[NSURL alloc] initFileURLWithPath:@"/Users/rgm/Desktop/"];
+  NSString *filename = [self.url lastPathComponent];
+  NSString *extension = [filename pathExtension];
+  NSString *shortFilename = [filename stringByDeletingPathExtension];
+  NSString *newFilename = [[NSString stringWithFormat:@"%@-%@", shortFilename, ext]
+                        stringByAppendingPathExtension:extension];
+  NSURL *fullPath = [desktop URLByAppendingPathComponent:newFilename];
+
+  NSData *imageData = [rep representationUsingType:NSJPEGFileType properties:opts];
+  [imageData writeToFile:[fullPath path] atomically:NO];
+}
+
+- (void)writeCIImageToDisk:(CIImage *)ciImage WithSuffix:(NSString *)ext
+{
+  NSBitmapImageRep *rep = [[NSBitmapImageRep alloc] initWithCIImage:ciImage];
+  [self writeImageRepToDisk:rep withSuffix:ext];
+}
+
 
 @end
