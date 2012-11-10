@@ -8,6 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import "PHHasher.h"
+#import "PHUtility.h"
 
 int main(int argc, const char * argv[])
 {
@@ -23,7 +24,8 @@ int main(int argc, const char * argv[])
                         initFileURLWithPath:[NSString stringWithCString:argv[1]
                                                                encoding:NSUTF8StringEncoding]];
     hasher.debug     = YES;
-    [hasher perceptualHash];
+    const char *hash = ph_NSDataToHexString([hasher perceptualHash]);
+    printf("hash: %s", hash);
   }
   return 0;
 }

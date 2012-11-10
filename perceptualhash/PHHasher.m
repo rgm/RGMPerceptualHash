@@ -16,7 +16,9 @@
 #define INPUT_CUBE_DIMENSION 64
 #define BLUR_RADIUS          20.0f // px
 
-@implementation PHHasher
+@implementation PHHasher {
+  unsigned char *_hashBytes;
+}
 
 - (id)init
 {
@@ -24,17 +26,40 @@
   if (self) {
     _url   = nil;
     _debug = NO;
+    _hashBytes = calloc(HASH_LENGTH/8, sizeof(unsigned char));
   }
   return self;
 }
 
-- (NSData *)perceptualHash
+- (void)dealloc
+{
+  free(_hashBytes);
+}
+
+- (NSData *)oldPerceptualHash
 {
   NSImage *image = [[NSImage alloc] initWithContentsOfURL:self.url];
   NSImage *normalizedImage = [self normalizeImage:image];
   NSData *buffer = [self hashImage: normalizedImage];
   return [buffer copy];
 }
+
+- (NSData *)perceptualHash
+{
+  NSData *data = [NSData dataWithBytes:[self hashBytes]
+                                length:[self hashByteLength]];
+  return data;
+}
+
+- (unsigned char *)hashBytes {
+  return _hashBytes;
+}
+
+- (NSUInteger)hashByteLength {
+  return HASH_LENGTH/8;
+}
+
+#pragma mark --
 
 - (NSImage *)normalizeImage:(NSImage *)image
 {
