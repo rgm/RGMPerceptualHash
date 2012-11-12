@@ -18,6 +18,8 @@
 
 @implementation PHHasher {
   unsigned char *_hashBytes;
+  void *_bigPixelBuffer;
+  void *_littlePixelBuffer;
 }
 
 - (id)init
@@ -26,7 +28,9 @@
   if (self) {
     _url   = nil;
     _debug = NO;
-    _hashBytes = calloc(HASH_LENGTH/8, sizeof(unsigned char));
+    _hashBytes = calloc((size_t)[self hashByteLength], sizeof(unsigned char));
+    _bigPixelBuffer = NULL;
+    _littlePixelBuffer = NULL;
   }
   return self;
 }
@@ -34,6 +38,12 @@
 - (void)dealloc
 {
   free(_hashBytes);
+  if (_bigPixelBuffer != NULL) {
+    free(_bigPixelBuffer);
+  }
+  if (_littlePixelBuffer != NULL) {
+    free(_littlePixelBuffer);
+  }
 }
 
 - (NSData *)oldPerceptualHash
@@ -348,6 +358,27 @@
   CGFloat scaledX = originalRect.size.width * scale;
   CGFloat aspect = NORMALIZED_DIM / scaledX;
   return [NSNumber numberWithFloat:aspect];
+}
+
+- (CIImage *)CIImageFromNSImage:(NSImage *)image
+                   usingContext:(NSGraphicsContext *)context;
+{
+  CGImageRef cgImage = [image CGImageForProposedRect:NULL context:context hints:nil];
+  CIImage *ciImage = [CIImage imageWithCGImage:cgImage];
+  CGImageRelease(cgImage);
+  return ciImage;
+}
+
+- (NSImage *)NSImageFromCIImage:(CIImage *)image
+                   usingContext:(NSGraphicsContext *)context
+{
+  // no apparent need to CGImageRelease on cgImage; instruments
+  // says it's autoreleased when it gets used in creating the nsimage ??
+  CIContext *ciContext = [context CIContext];
+  CGImageRef cgImage = [ciContext createCGImage:image fromRect:[image extent]];
+  NSImage *nsImage = [[NSImage alloc] initWithCGImage:cgImage size:NSZeroSize];
+
+  return nsImage;
 }
 
 # pragma mark debugging crap
