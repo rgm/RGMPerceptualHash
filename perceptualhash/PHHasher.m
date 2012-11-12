@@ -70,7 +70,7 @@
   return HASH_LENGTH/8;
 }
 
-#pragma mark Refactored
+#pragma mark hash calculation
 
 - (void)calculateHash
 {
@@ -80,13 +80,41 @@
 }
 
 - (void)calculateBlockMeansForImage:(NSImage *)sourceImage
-                     intoHashBuffer:(unsigned char *)buffer
+                     intoHashBuffer:(unsigned char *)hashBuffer
 {
-  // test passing around the buffer as an ivar
+  int blockLength = NORMALIZED_DIM*NORMALIZED_DIM/HASH_LENGTH;
+  int bytesPerPixel = 4;
+  unsigned char blockMeans[HASH_LENGTH];
+//  [self drawImage:sourceImage toBuffer:&_littlePixelBuffer]; // probably a no-op
+  unsigned char *pixelBuffer = _littlePixelBuffer; // needs to already have the normalized image
+  for (int i = 0; i < HASH_LENGTH; i++) {
+    long accumulator = 0;
+    for (int j = 0; j < blockLength; j++) {
+      long currentValue = (long)pixelBuffer[j+(i*blockLength)*bytesPerPixel];
+      accumulator += currentValue;
+    }
+    int mean = (int)roundtol((float)accumulator/blockLength);
+    blockMeans[i] = mean;
+  }
+  // find the median value
+  unsigned char sortedBlockMeans[HASH_LENGTH];
+  memcpy(sortedBlockMeans, blockMeans, sizeof(blockMeans));
+  qsort(sortedBlockMeans, HASH_LENGTH, sizeof(unsigned char), compare_chars);
+  unsigned char median = sortedBlockMeans[(int)floor(HASH_LENGTH-1)/2];
+
   // unset all bits
   for (int i = 0; i < [self hashByteLength]; i++) {
-    buffer[i] = (unsigned char)i;
-//    buffer[i] = (unsigned char)0;
+    hashBuffer[i] = (unsigned char)0;
+  }
+  // figure out the hash (bitwise)
+  for (int i = 0; i < HASH_LENGTH; i++) {
+    int charIndex = (i / 8);
+    int bitIndex = 7 - (i % 8);
+    int blockMean = blockMeans[i];
+    if (blockMean > median) {
+      // set the bit, otherwise cleared above
+      hashBuffer[charIndex] |= (1 << bitIndex);
+    }
   }
 }
 
