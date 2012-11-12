@@ -56,6 +56,7 @@
 
 - (NSData *)perceptualHash
 {
+  [self calculateHash];
   NSData *data = [NSData dataWithBytes:[self hashBytes]
                                 length:[self hashByteLength]];
   return data;
@@ -69,7 +70,196 @@
   return HASH_LENGTH/8;
 }
 
-#pragma mark --
+#pragma mark Refactored
+
+- (void)calculateHash
+{
+  NSImage *sourceImage = [[NSImage alloc] initWithContentsOfURL:self.url];
+  NSImage *thumbnail = [self normalizedImageFromImage:sourceImage];
+  [self writeNSImageToDisk:thumbnail withSuffix:@"normalized"];
+  [self calculateBlockMeansForImage: thumbnail intoHashBuffer:_hashBytes];
+}
+
+- (void)calculateBlockMeansForImage:(NSImage *)sourceImage
+                     intoHashBuffer:(unsigned char *)buffer
+{
+  // test passing around the buffer as an ivar
+  // unset all bits
+  for (int i = 0; i < [self hashByteLength]; i++) {
+    buffer[i] = (unsigned char)i;
+//    buffer[i] = (unsigned char)0;
+  }
+}
+
+#pragma mark image processing
+
+- (NSImage *)normalizedImageFromImage:(NSImage *)sourceImage
+{
+  NSGraphicsContext *context = [self contextForImage:sourceImage
+                                          usingBuffer:&_bigPixelBuffer];
+
+  NSImage *normalizedImage = [self processWithFilterChain:sourceImage usingContext:context];
+// NSImage *equalizedImage = [self equalizeImage:normalizedImage];
+
+  return normalizedImage;
+}
+
+- (NSGraphicsContext *)contextForImage:(NSImage *)sourceImage
+                            usingBuffer:(void **)buffer;
+{
+  long bytesPerRow = sourceImage.size.width * 4;
+  long numRows = sourceImage.size.height;
+  *buffer = calloc(bytesPerRow, numRows);
+  size_t bitsPerComponent = 8;
+  CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+  CGContextRef cgContext = CGBitmapContextCreate(*buffer,
+                                                 sourceImage.size.width,
+                                                 sourceImage.size.height,
+                                                 bitsPerComponent,
+                                                 bytesPerRow,
+                                                 colorSpace,
+                                                 kCGImageAlphaNoneSkipLast);
+  NSGraphicsContext *nsContext = [NSGraphicsContext graphicsContextWithGraphicsPort:cgContext
+                                                                          flipped:NO];
+  CGContextRelease(cgContext);
+  CGColorSpaceRelease(colorSpace);
+  return nsContext;
+}
+
+- (NSImage *)processWithFilterChain:(NSImage *)image
+                       usingContext:(NSGraphicsContext *)context
+{
+  //
+  // perceptual luminance only -> blur -> resize to 512x512 -> histogram
+  // equalize over GREY_LEVELS
+  //
+  CIImage *initialImage = [self CIImageFromNSImage:image usingContext:context];
+  CGRect initialExtent = [initialImage extent];
+
+  CIFilter *luminance   = [CIFilter filterWithName:@"CIColorCube"];
+  CIFilter *affineClamp = [CIFilter filterWithName:@"CIAffineClamp"];
+  CIFilter *blur        = [CIFilter filterWithName:@"CIGaussianBlur"];
+  CIFilter *crop        = [CIFilter filterWithName:@"CICrop"];
+  CIFilter *resize      = [CIFilter filterWithName:@"CILanczosScaleTransform"];
+
+  [luminance setDefaults];
+  [luminance setValue:initialImage forKey:kCIInputImageKey];
+  [luminance setValue:@INPUT_CUBE_DIMENSION forKey:@"inputCubeDimension"];
+  [luminance setValue:[self luminanceCubeWithSteps:INPUT_CUBE_DIMENSION]
+               forKey:@"inputCubeData"];
+  CIImage *luminanceResult = [luminance valueForKey:kCIOutputImageKey];
+
+  // affine clamp to avoid the white edge fringing
+  [affineClamp setDefaults];
+  [affineClamp setValue:luminanceResult forKey:kCIInputImageKey];
+  NSAffineTransform *identityTransform = [NSAffineTransform transform];
+  [affineClamp setValue:identityTransform forKey:@"inputTransform"];
+  CIImage *affineResult = [affineClamp valueForKey:kCIOutputImageKey];
+
+  [blur setDefaults];
+  [blur setValue:affineResult forKey:kCIInputImageKey];
+  [blur setValue:@BLUR_RADIUS forKey:@"inputRadius"];
+  CIImage *blurResult = [blur valueForKey:kCIOutputImageKey];
+
+  // need a crop to pull the affine clamped image back
+  // from infinite extents
+  [crop setDefaults];
+  [crop setValue:blurResult forKey:kCIInputImageKey];
+  CIVector *originalCropRect = [CIVector vectorWithX:initialExtent.origin.x
+                                                   Y:initialExtent.origin.y
+                                                   Z:initialExtent.size.width
+                                                   W:initialExtent.size.height];
+  [crop setValue:originalCropRect forKey:@"inputRectangle"];
+  CIImage *cropResult = [crop valueForKey:kCIOutputImageKey];
+
+  [resize setDefaults];
+  [resize setValue:[self scaleFactor:initialExtent] forKey:@"inputScale"];
+  [resize setValue:[self aspectRatio:initialExtent] forKey:@"inputAspectRatio"];
+  [resize setValue:cropResult forKey:kCIInputImageKey];
+  CIImage *resizeResult = [resize valueForKey:kCIOutputImageKey];
+
+  NSImage *result = [self NSImageFromCIImage:resizeResult usingContext:context];
+
+  return result;
+}
+
+- (NSImage *)equalizeImage:(NSImage *)image
+{
+  [self drawImage:image toBuffer:_littlePixelBuffer];
+  unsigned char *pixelBuffer = (unsigned char *)_littlePixelBuffer;
+
+  long histogram[GREY_LEVELS];
+  long cumulativeHistogram[GREY_LEVELS];
+  int adjustedValues[GREY_LEVELS];
+
+  [self calculateHistogram:histogram fromBuffer:pixelBuffer];
+  [self calculateCumulativeHistogram:cumulativeHistogram fromHistogram:histogram];
+  [self calculateNormalizedCumulativeDistribution:adjustedValues
+                                    fromHistogram:histogram
+                           andCumulativeHistogram:cumulativeHistogram];
+  [self adjustPixelBuffer:pixelBuffer usingAdjustedValues:adjustedValues];
+
+  NSImage *normalizedImage = [self imageFromPixelBuffer:pixelBuffer
+                                                  width:NORMALIZED_DIM
+                                                 height:NORMALIZED_DIM];
+  return normalizedImage;
+}
+
+- (void)calculateHistogram:(long *)histogram
+                fromBuffer:(unsigned char *)pixelBuffer
+{
+}
+
+- (void)calculateCumulativeHistogram:(long *)cumulativeHistogram
+                       fromHistogram:(long *)histogram
+{
+}
+
+- (void)calculateNormalizedCumulativeDistribution:(int *)adjustedValues
+                                    fromHistogram:(long *)histogram
+                           andCumulativeHistogram:(long *)cumulativeHistogram
+{
+}
+
+- (void)adjustPixelBuffer:(unsigned char *)buffer
+      usingAdjustedValues:(int *)adjustedValues
+{
+}
+
+- (NSImage *)imageFromPixelBuffer:(unsigned char *)buffer
+                            width:(int)width
+                           height:(int)height
+{
+  //  http://www.cocoabuilder.com/archive/cocoa/191884-create-nsimage-from-array-of-integers.html
+  unsigned char *planes[1];
+  planes[0] = buffer;
+  NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:planes
+                                                                     pixelsWide:width
+                                                                     pixelsHigh:height
+                                                                  bitsPerSample:8
+                                                                samplesPerPixel:3
+                                                                       hasAlpha:YES
+                                                                       isPlanar:NO
+                                                                 colorSpaceName:NSDeviceRGBColorSpace
+                                                                   bitmapFormat:0
+                                                                    bytesPerRow:width*4
+                                                                   bitsPerPixel:0];
+  NSImage *image = [[NSImage alloc] initWithSize:[bitmap size]];
+  [image addRepresentation:bitmap];
+  return image;
+}
+
+
+- (void)drawImage:(NSImage *)image toBuffer:(void *)buffer
+{
+  NSGraphicsContext *context = [self contextForImage:image usingBuffer:&buffer];
+  CGImageRef ref = [image CGImageForProposedRect:NULL context:context hints:nil];
+  CGRect extents = CGRectMake(0, 0, CGImageGetWidth(ref), CGImageGetHeight(ref));
+  CGContextDrawImage([context graphicsPort], extents, ref);
+  CGImageRelease(ref);
+}
+
+#pragma mark old
 
 - (NSImage *)normalizeImage:(NSImage *)image
 {
