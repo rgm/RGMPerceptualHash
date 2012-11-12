@@ -25,7 +25,7 @@ int main(int argc, const char * argv[])
                                                                encoding:NSUTF8StringEncoding]];
     hasher.debug     = YES;
     const char *hash = ph_NSDataToHexString([hasher perceptualHash]);
-    printf("hash: %s", hash);
+    printf("%s\n", hash);
   }
   return 0;
 }
