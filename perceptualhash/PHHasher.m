@@ -76,7 +76,6 @@
 {
   NSImage *sourceImage = [[NSImage alloc] initWithContentsOfURL:self.url];
   NSImage *thumbnail = [self normalizedImageFromImage:sourceImage];
-  [self writeNSImageToDisk:thumbnail withSuffix:@"normalized"];
   [self calculateBlockMeansForImage: thumbnail intoHashBuffer:_hashBytes];
 }
 
@@ -99,7 +98,9 @@
                                           usingBuffer:&_bigPixelBuffer];
 
   NSImage *normalizedImage = [self processWithFilterChain:sourceImage usingContext:context];
-// NSImage *equalizedImage = [self equalizeImage:normalizedImage];
+  [self writeNSImageToDisk:normalizedImage withSuffix:@"normalized"];
+  NSImage *equalizedImage = [self equalizeImage:normalizedImage];
+  [self writeNSImageToDisk:equalizedImage withSuffix:@"equalized"];
 
   return normalizedImage;
 }
@@ -185,7 +186,7 @@
 
 - (NSImage *)equalizeImage:(NSImage *)image
 {
-  [self drawImage:image toBuffer:_littlePixelBuffer];
+  [self drawImage:image toBuffer:&_littlePixelBuffer];
   unsigned char *pixelBuffer = (unsigned char *)_littlePixelBuffer;
 
   long histogram[GREY_LEVELS];
@@ -197,9 +198,9 @@
   [self calculateNormalizedCumulativeDistribution:adjustedValues
                                     fromHistogram:histogram
                            andCumulativeHistogram:cumulativeHistogram];
-  [self adjustPixelBuffer:pixelBuffer usingAdjustedValues:adjustedValues];
+  [self adjustPixelBuffer:&pixelBuffer usingAdjustedValues:adjustedValues];
 
-  NSImage *normalizedImage = [self imageFromPixelBuffer:pixelBuffer
+  NSImage *normalizedImage = [self imageFromPixelBuffer:&pixelBuffer
                                                   width:NORMALIZED_DIM
                                                  height:NORMALIZED_DIM];
   return normalizedImage;
@@ -221,38 +222,50 @@
 {
 }
 
-- (void)adjustPixelBuffer:(unsigned char *)buffer
+- (void)adjustPixelBuffer:(unsigned char **)buffer
       usingAdjustedValues:(int *)adjustedValues
 {
+  unsigned char *theBuffer = *buffer;
+  int bytesPerPixel = 4;
+  int bytesPerRow = NORMALIZED_DIM * bytesPerPixel;
+  for (int i = 0; i < NORMALIZED_DIM*bytesPerRow; i += bytesPerPixel) {
+    int oldValue = theBuffer[i];
+    int newValue = oldValue + 30;
+    if (newValue > 0xFF) { newValue = 0xFF; }
+    theBuffer[i + 0] = newValue; // red
+    theBuffer[i + 1] = newValue; // green
+    theBuffer[i + 2] = newValue; // blue
+    theBuffer[i + 3] = 0xff;     // alpha
+  }
 }
 
-- (NSImage *)imageFromPixelBuffer:(unsigned char *)buffer
+- (NSImage *)imageFromPixelBuffer:(unsigned char **)buffer
                             width:(int)width
                            height:(int)height
 {
   //  http://www.cocoabuilder.com/archive/cocoa/191884-create-nsimage-from-array-of-integers.html
   unsigned char *planes[1];
-  planes[0] = buffer;
+  planes[0] = *buffer;
   NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:planes
                                                                      pixelsWide:width
                                                                      pixelsHigh:height
                                                                   bitsPerSample:8
-                                                                samplesPerPixel:3
+                                                                samplesPerPixel:4
                                                                        hasAlpha:YES
                                                                        isPlanar:NO
                                                                  colorSpaceName:NSDeviceRGBColorSpace
                                                                    bitmapFormat:0
                                                                     bytesPerRow:width*4
-                                                                   bitsPerPixel:0];
+                                                                   bitsPerPixel:32];
   NSImage *image = [[NSImage alloc] initWithSize:[bitmap size]];
   [image addRepresentation:bitmap];
   return image;
 }
 
 
-- (void)drawImage:(NSImage *)image toBuffer:(void *)buffer
+- (void)drawImage:(NSImage *)image toBuffer:(void **)buffer
 {
-  NSGraphicsContext *context = [self contextForImage:image usingBuffer:&buffer];
+  NSGraphicsContext *context = [self contextForImage:image usingBuffer:buffer];
   CGImageRef ref = [image CGImageForProposedRect:NULL context:context hints:nil];
   CGRect extents = CGRectMake(0, 0, CGImageGetWidth(ref), CGImageGetHeight(ref));
   CGContextDrawImage([context graphicsPort], extents, ref);
@@ -553,9 +566,10 @@
 - (CIImage *)CIImageFromNSImage:(NSImage *)image
                    usingContext:(NSGraphicsContext *)context;
 {
+  // no apparent need to CGImageRelease on cgImage; instruments
+  // says it's autoreleased when it gets used in creating the ciimage ??
   CGImageRef cgImage = [image CGImageForProposedRect:NULL context:context hints:nil];
   CIImage *ciImage = [CIImage imageWithCGImage:cgImage];
-  CGImageRelease(cgImage);
   return ciImage;
 }
 
