@@ -98,9 +98,12 @@
                                           usingBuffer:&_bigPixelBuffer];
 
   NSImage *normalizedImage = [self processWithFilterChain:sourceImage usingContext:context];
-  [self writeNSImageToDisk:normalizedImage withSuffix:@"normalized"];
   NSImage *equalizedImage = [self equalizeImage:normalizedImage];
-  [self writeNSImageToDisk:equalizedImage withSuffix:@"equalized"];
+
+  if (self.debug) {
+    [self writeNSImageToDisk:normalizedImage withSuffix:@"normalized"];
+    [self writeNSImageToDisk:equalizedImage withSuffix:@"equalized"];
+  }
 
   return normalizedImage;
 }
@@ -209,11 +212,39 @@
 - (void)calculateHistogram:(long *)histogram
                 fromBuffer:(unsigned char *)pixelBuffer
 {
+  for (int i = 0; i < GREY_LEVELS; i++) {
+    histogram[i] = 0;
+  }
+  int bytesPerRow = NORMALIZED_DIM * 4;
+  for (int i = 0; i < bytesPerRow*NORMALIZED_DIM; i += 4) {
+    int value = (int)pixelBuffer[i];
+    histogram[value] += 1;
+  }
+  if (self.debug) {
+    printf("histogram\n");
+    for (int i = 0; i < GREY_LEVELS; i++) {
+      printf("%3d\t%7d\n", i, (int)histogram[i]);
+    }
+  }
 }
 
 - (void)calculateCumulativeHistogram:(long *)cumulativeHistogram
                        fromHistogram:(long *)histogram
 {
+  long cumulative = 0;
+  for (int i = 0; i < GREY_LEVELS; i++) {
+    cumulativeHistogram[i] = 0;
+  }
+  for (int i = 0; i < GREY_LEVELS; i++) {
+    cumulative += histogram[i];
+    cumulativeHistogram[i] = cumulative;
+  }
+  if (self.debug) {
+    printf("cumulative histogram\n");
+    for (int i = 0; i < GREY_LEVELS; i++) {
+      printf("%3d\t%7d\n", i, (int)cumulativeHistogram[i]);
+    }
+  }
 }
 
 - (void)calculateNormalizedCumulativeDistribution:(int *)adjustedValues
