@@ -251,18 +251,44 @@
                                     fromHistogram:(long *)histogram
                            andCumulativeHistogram:(long *)cumulativeHistogram
 {
+  // figure out normalized cdf
+  int minGreyLevel = 0;
+  int maxGreyLevel = GREY_LEVELS-1;
+  while (true) {
+    if (histogram[minGreyLevel] != 0 || minGreyLevel >= GREY_LEVELS-1) {
+      break;
+    } else {
+      minGreyLevel++;
+    }
+  }
+  while (true) {
+    if (histogram[maxGreyLevel] != 0 || maxGreyLevel <= 0) {
+      break;
+    } else {
+      maxGreyLevel--;
+    }
+  }
+  for (int j = 1; j < GREY_LEVELS; j++) {
+    float top = cumulativeHistogram[j] - cumulativeHistogram[minGreyLevel];
+    float bottom = NORMALIZED_DIM*NORMALIZED_DIM-cumulativeHistogram[minGreyLevel];
+    float divided = top/bottom;
+    float mult = divided*(GREY_LEVELS-1);
+    adjustedValues[j] = (int)roundl(mult);
+  }
 }
 
 - (void)adjustPixelBuffer:(unsigned char **)buffer
       usingAdjustedValues:(int *)adjustedValues
 {
+  // adjustedValues is an array with
+  // indices are original grey level
+  // values are the grey value to substitute
   unsigned char *theBuffer = *buffer;
   int bytesPerPixel = 4;
   int bytesPerRow = NORMALIZED_DIM * bytesPerPixel;
   for (int i = 0; i < NORMALIZED_DIM*bytesPerRow; i += bytesPerPixel) {
     int oldValue = theBuffer[i];
-    int newValue = oldValue + 30;
-    if (newValue > 0xFF) { newValue = 0xFF; }
+    int newValue = adjustedValues[oldValue];
     theBuffer[i + 0] = newValue; // red
     theBuffer[i + 1] = newValue; // green
     theBuffer[i + 2] = newValue; // blue
@@ -292,7 +318,6 @@
   [image addRepresentation:bitmap];
   return image;
 }
-
 
 - (void)drawImage:(NSImage *)image toBuffer:(void **)buffer
 {
