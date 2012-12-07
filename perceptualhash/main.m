@@ -10,8 +10,20 @@
 #import "PHHasher.h"
 #import "PHUtility.h"
 
+#import "Lagrangian/Lagrangian.h"
+
 int main(int argc, const char * argv[])
 {
+
+#if L3_TESTS
+  @autoreleasepool {
+    L3TestRunner *runner = [[L3TestRunner alloc] init];
+    L3TestSuite *suite = [[L3TestSuite alloc] init];
+//    L3TestSuite *suite = [L3TestSuite testSuiteWithName:@"main"];
+    [runner performSelector:@selector(runTest:) withObject:nil];
+    exit(1);
+  }
+#endif
 
   if (argc != 2) {
     printf("Usage: %s [file]\n", argv[0]);
@@ -28,4 +40,9 @@ int main(int argc, const char * argv[])
     printf("%s\n", hash);
   }
   return 0;
+}
+
+@l3_suite("main");
+@l3_test("test failure") {
+  l3_assert(YES, l3_equals(NO));
 }
