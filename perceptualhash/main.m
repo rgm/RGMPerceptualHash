@@ -17,11 +17,11 @@ int main(int argc, const char * argv[])
 
 #if L3_TESTS
   @autoreleasepool {
-    L3TestRunner *runner = [[L3TestRunner alloc] init];
+    L3TestRunner *runner = [L3TestRunner new];
     L3TestSuite *suite = [[L3TestSuite alloc] init];
 //    L3TestSuite *suite = [L3TestSuite testSuiteWithName:@"main"];
     [runner performSelector:@selector(runTest:) withObject:nil];
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 #endif
 
