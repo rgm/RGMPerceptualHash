@@ -9,8 +9,9 @@
 #import <Cocoa/Cocoa.h>
 #import "PHHasher.h"
 #import "PHUtility.h"
-
-#import "Lagrangian/Lagrangian.h"
+#if L3_TESTS
+  #import "Lagrangian/Lagrangian.h"
+#endif
 
 int main(int argc, const char * argv[])
 {
@@ -42,7 +43,9 @@ int main(int argc, const char * argv[])
   return 0;
 }
 
+#if L3_TESTS
 @l3_suite("main");
 @l3_test("test failure") {
   l3_assert(YES, l3_equals(NO));
 }
+#endif

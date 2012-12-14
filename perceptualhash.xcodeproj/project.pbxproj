@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E1384967167BACD800F45403 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1C37B8416482A7800F1976D /* SenTestingKit.framework */; };
+		E1384968167BACD800F45403 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1C37B9116482E2100F1976D /* Cocoa.framework */; };
+		E138496E167BACD800F45403 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = E138496C167BACD800F45403 /* InfoPlist.strings */; };
+		E1384971167BACD800F45403 /* vanillatest.m in Sources */ = {isa = PBXBuildFile; fileRef = E1384970167BACD800F45403 /* vanillatest.m */; };
 		E161B20616729C8800F72A3C /* Lagrangian.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E161B20516729C8800F72A3C /* Lagrangian.dylib */; settings = {ATTRIBUTES = (Weak, ); }; };
 		E16DC9A4164D89560083A47A /* PHUtility.m in Sources */ = {isa = PBXBuildFile; fileRef = E16DC9A3164D89560083A47A /* PHUtility.m */; };
 		E17F9A671649791F00B8898F /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E17F9A661649791F00B8898F /* QuartzCore.framework */; };
@@ -30,7 +34,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		E161B1F51672708A00F72A3C /* perceptualhash.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = perceptualhash.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1384966167BACD800F45403 /* vanillatest.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = vanillatest.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E138496B167BACD800F45403 /* vanillatest-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "vanillatest-Info.plist"; sourceTree = "<group>"; };
+		E138496D167BACD800F45403 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		E138496F167BACD800F45403 /* vanillatest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vanillatest.h; sourceTree = "<group>"; };
+		E1384970167BACD800F45403 /* vanillatest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = vanillatest.m; sourceTree = "<group>"; };
+		E1384972167BACD800F45403 /* vanillatest-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "vanillatest-Prefix.pch"; sourceTree = "<group>"; };
+		E161B1F51672708A00F72A3C /* perceptualhash.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = perceptualhash.octest; path = lagrangian.octest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E161B20516729C8800F72A3C /* Lagrangian.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Lagrangian.dylib; path = Lagrangian/DerivedData/Lagrangian/Build/Products/Debug/Lagrangian.dylib; sourceTree = "<group>"; };
 		E16DC9A3164D89560083A47A /* PHUtility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PHUtility.m; sourceTree = "<group>"; };
 		E16DC9A6164D89620083A47A /* PHUtility.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PHUtility.h; sourceTree = "<group>"; };
@@ -50,6 +60,15 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		E1384962167BACD800F45403 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1384967167BACD800F45403 /* SenTestingKit.framework in Frameworks */,
+				E1384968167BACD800F45403 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E1C37B571648297A00F1976D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -63,11 +82,32 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		E1384969167BACD800F45403 /* vanillatest */ = {
+			isa = PBXGroup;
+			children = (
+				E138496F167BACD800F45403 /* vanillatest.h */,
+				E1384970167BACD800F45403 /* vanillatest.m */,
+				E138496A167BACD800F45403 /* Supporting Files */,
+			);
+			path = vanillatest;
+			sourceTree = "<group>";
+		};
+		E138496A167BACD800F45403 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				E138496B167BACD800F45403 /* vanillatest-Info.plist */,
+				E138496C167BACD800F45403 /* InfoPlist.strings */,
+				E1384972167BACD800F45403 /* vanillatest-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 		E1C37B4F1648297A00F1976D = {
 			isa = PBXGroup;
 			children = (
 				E1C37BA416483A8000F1976D /* README */,
 				E1C37B601648297A00F1976D /* perceptualhash */,
+				E1384969167BACD800F45403 /* vanillatest */,
 				E1C37B5D1648297A00F1976D /* Frameworks */,
 				E1C37B5B1648297A00F1976D /* Products */,
 			);
@@ -78,6 +118,7 @@
 			children = (
 				E1C37B5A1648297A00F1976D /* phash */,
 				E161B1F51672708A00F72A3C /* perceptualhash.octest */,
+				E1384966167BACD800F45403 /* vanillatest.octest */,
 			);
 			name = Products;
 			path = DerivedData/perceptualhash/Build/Products;
@@ -130,6 +171,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		E1384965167BACD800F45403 /* vanillatest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E1384976167BACD800F45403 /* Build configuration list for PBXNativeTarget "vanillatest" */;
+			buildPhases = (
+				E1384961167BACD800F45403 /* Sources */,
+				E1384962167BACD800F45403 /* Frameworks */,
+				E1384963167BACD800F45403 /* Resources */,
+				E1384964167BACD800F45403 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = vanillatest;
+			productName = vanillatest;
+			productReference = E1384966167BACD800F45403 /* vanillatest.octest */;
+			productType = "com.apple.product-type.bundle";
+		};
 		E161B1F41672708A00F72A3C /* lagrangian */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E161B1F61672708A00F72A3C /* Build configuration list for PBXNativeTarget "lagrangian" */;
@@ -184,11 +243,47 @@
 			targets = (
 				E1C37B591648297A00F1976D /* phash */,
 				E161B1F41672708A00F72A3C /* lagrangian */,
+				E1384965167BACD800F45403 /* vanillatest */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		E1384963167BACD800F45403 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E138496E167BACD800F45403 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		E1384964167BACD800F45403 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
+		E1384961167BACD800F45403 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1384971167BACD800F45403 /* vanillatest.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E1C37B561648297A00F1976D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -201,7 +296,57 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXVariantGroup section */
+		E138496C167BACD800F45403 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				E138496D167BACD800F45403 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
 /* Begin XCBuildConfiguration section */
+		E1384973167BACD800F45403 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "vanillatest/vanillatest-Prefix.pch";
+				INFOPLIST_FILE = "vanillatest/vanillatest-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Debug;
+		};
+		E1384974167BACD800F45403 /* Test */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "vanillatest/vanillatest-Prefix.pch";
+				INFOPLIST_FILE = "vanillatest/vanillatest-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Test;
+		};
+		E1384975167BACD800F45403 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "vanillatest/vanillatest-Prefix.pch";
+				INFOPLIST_FILE = "vanillatest/vanillatest-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Release;
+		};
 		E161B1F71672708A00F72A3C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -360,6 +505,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		E1384976167BACD800F45403 /* Build configuration list for PBXNativeTarget "vanillatest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E1384973167BACD800F45403 /* Debug */,
+				E1384974167BACD800F45403 /* Test */,
+				E1384975167BACD800F45403 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		E161B1F61672708A00F72A3C /* Build configuration list for PBXNativeTarget "lagrangian" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -368,6 +522,7 @@
 				E161B1F81672708A00F72A3C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		E1C37B541648297A00F1976D /* Build configuration list for PBXProject "perceptualhash" */ = {
 			isa = XCConfigurationList;
