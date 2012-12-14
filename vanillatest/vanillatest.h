@@ -7,6 +7,8 @@
 //
 
 #import <SenTestingKit/SenTestingKit.h>
+#import "PHHasher.h"
+#import "PHUtility.h"
 
 @interface vanillatest : SenTestCase
 

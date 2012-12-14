@@ -10,11 +10,7 @@
 #import "PHHasher.h"
 #import "PHUtility.h"
 
-#define HASH_LENGTH          128   // bits
-#define NORMALIZED_DIM       512   // px
-#define GREY_LEVELS          255
-#define INPUT_CUBE_DIMENSION 64
-#define BLUR_RADIUS          20.0f // px
+#import "Lagrangian/Lagrangian.h"
 
 @implementation PHHasher {
   unsigned char *_hashBytes;
@@ -48,6 +44,7 @@
 
 - (NSData *)perceptualHash
 {
+  NSParameterAssert(self.url != nil);
   [self calculateHash];
   NSData *data = [NSData dataWithBytes:[self hashBytes]
                                 length:[self hashByteLength]];
