@@ -41,7 +41,6 @@
 		E1384966167BACD800F45403 /* vanillatest.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = vanillatest.octest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E138496B167BACD800F45403 /* vanillatest-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "vanillatest-Info.plist"; sourceTree = "<group>"; };
 		E138496D167BACD800F45403 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		E138496F167BACD800F45403 /* vanillatest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vanillatest.h; sourceTree = "<group>"; };
 		E1384970167BACD800F45403 /* vanillatest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = vanillatest.m; sourceTree = "<group>"; };
 		E1384972167BACD800F45403 /* vanillatest-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "vanillatest-Prefix.pch"; sourceTree = "<group>"; };
 		E1384979167BB89900F45403 /* 3K1W.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = 3K1W.png; path = test/corpus/3K1W.png; sourceTree = SOURCE_ROOT; };
@@ -92,7 +91,6 @@
 			isa = PBXGroup;
 			children = (
 				E1384978167BB84500F45403 /* Test corpus */,
-				E138496F167BACD800F45403 /* vanillatest.h */,
 				E1384970167BACD800F45403 /* vanillatest.m */,
 				E138496A167BACD800F45403 /* Supporting Files */,
 			);
@@ -531,6 +529,7 @@
 				E1384975167BACD800F45403 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		E161B1F61672708A00F72A3C /* Build configuration list for PBXNativeTarget "lagrangian" */ = {
 			isa = XCConfigurationList;
