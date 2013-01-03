@@ -17,6 +17,15 @@
 		E138497D167BBB4500F45403 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E17F9A661649791F00B8898F /* QuartzCore.framework */; };
 		E161B20616729C8800F72A3C /* Lagrangian.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E161B20516729C8800F72A3C /* Lagrangian.dylib */; settings = {ATTRIBUTES = (Weak, ); }; };
 		E16DC9A4164D89560083A47A /* PHUtility.m in Sources */ = {isa = PBXBuildFile; fileRef = E16DC9A3164D89560083A47A /* PHUtility.m */; };
+		E16F29FB1695E9480004E309 /* TestHammingDistance.m in Sources */ = {isa = PBXBuildFile; fileRef = E16F29FA1695E9480004E309 /* TestHammingDistance.m */; };
+		E16F29FE1695E9E50004E309 /* PHHamming.m in Sources */ = {isa = PBXBuildFile; fileRef = E16F29FD1695E9E50004E309 /* PHHamming.m */; };
+		E16F2A001695EA380004E309 /* PHHamming.m in Sources */ = {isa = PBXBuildFile; fileRef = E16F29FD1695E9E50004E309 /* PHHamming.m */; };
+		E16F2A071695EE090004E309 /* black.png in Resources */ = {isa = PBXBuildFile; fileRef = E16F2A011695EE090004E309 /* black.png */; };
+		E16F2A081695EE090004E309 /* equalized.jpg in Resources */ = {isa = PBXBuildFile; fileRef = E16F2A021695EE090004E309 /* equalized.jpg */; };
+		E16F2A091695EE090004E309 /* midgrey.png in Resources */ = {isa = PBXBuildFile; fileRef = E16F2A031695EE090004E309 /* midgrey.png */; };
+		E16F2A0A1695EE090004E309 /* normalized.jpg in Resources */ = {isa = PBXBuildFile; fileRef = E16F2A041695EE090004E309 /* normalized.jpg */; };
+		E16F2A0B1695EE090004E309 /* original.jpg in Resources */ = {isa = PBXBuildFile; fileRef = E16F2A051695EE090004E309 /* original.jpg */; };
+		E16F2A0C1695EE090004E309 /* white.png in Resources */ = {isa = PBXBuildFile; fileRef = E16F2A061695EE090004E309 /* white.png */; };
 		E17F9A671649791F00B8898F /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E17F9A661649791F00B8898F /* QuartzCore.framework */; };
 		E1C37B621648297A00F1976D /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E1C37B611648297A00F1976D /* main.m */; };
 		E1C37B661648297A00F1976D /* phash.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = E1C37B651648297A00F1976D /* phash.1 */; };
@@ -44,10 +53,22 @@
 		E1384970167BACD800F45403 /* vanillatest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = vanillatest.m; sourceTree = "<group>"; };
 		E1384972167BACD800F45403 /* vanillatest-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "vanillatest-Prefix.pch"; sourceTree = "<group>"; };
 		E1384979167BB89900F45403 /* 3K1W.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = 3K1W.png; path = test/corpus/3K1W.png; sourceTree = SOURCE_ROOT; };
+		E14DAEB6167CD8520007D6C9 /* TestNormalizedImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestNormalizedImage.m; sourceTree = "<group>"; };
+		E14DAEB8167CDA910007D6C9 /* PHNormalizedImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PHNormalizedImage.h; sourceTree = "<group>"; };
+		E14DAEB9167CDA910007D6C9 /* PHNormalizedImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PHNormalizedImage.m; sourceTree = "<group>"; };
 		E161B1F51672708A00F72A3C /* perceptualhash.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = perceptualhash.octest; path = lagrangian.octest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E161B20516729C8800F72A3C /* Lagrangian.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Lagrangian.dylib; path = Lagrangian/DerivedData/Lagrangian/Build/Products/Debug/Lagrangian.dylib; sourceTree = "<group>"; };
 		E16DC9A3164D89560083A47A /* PHUtility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PHUtility.m; sourceTree = "<group>"; };
 		E16DC9A6164D89620083A47A /* PHUtility.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PHUtility.h; sourceTree = "<group>"; };
+		E16F29FA1695E9480004E309 /* TestHammingDistance.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestHammingDistance.m; sourceTree = "<group>"; };
+		E16F29FD1695E9E50004E309 /* PHHamming.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PHHamming.m; sourceTree = "<group>"; };
+		E16F29FF1695E9F30004E309 /* PHHamming.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PHHamming.h; sourceTree = "<group>"; };
+		E16F2A011695EE090004E309 /* black.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = black.png; path = test/corpus/black.png; sourceTree = SOURCE_ROOT; };
+		E16F2A021695EE090004E309 /* equalized.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = equalized.jpg; path = test/corpus/equalized.jpg; sourceTree = SOURCE_ROOT; };
+		E16F2A031695EE090004E309 /* midgrey.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = midgrey.png; path = test/corpus/midgrey.png; sourceTree = SOURCE_ROOT; };
+		E16F2A041695EE090004E309 /* normalized.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = normalized.jpg; path = test/corpus/normalized.jpg; sourceTree = SOURCE_ROOT; };
+		E16F2A051695EE090004E309 /* original.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = original.jpg; path = test/corpus/original.jpg; sourceTree = SOURCE_ROOT; };
+		E16F2A061695EE090004E309 /* white.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = white.png; path = test/corpus/white.png; sourceTree = SOURCE_ROOT; };
 		E17F9A661649791F00B8898F /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		E1C37B5A1648297A00F1976D /* phash */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = phash; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1C37B611648297A00F1976D /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -90,8 +111,9 @@
 		E1384969167BACD800F45403 /* vanillatest */ = {
 			isa = PBXGroup;
 			children = (
-				E1384978167BB84500F45403 /* Test corpus */,
 				E1384970167BACD800F45403 /* vanillatest.m */,
+				E16F29FA1695E9480004E309 /* TestHammingDistance.m */,
+				E1384978167BB84500F45403 /* Test corpus */,
 				E138496A167BACD800F45403 /* Supporting Files */,
 			);
 			path = vanillatest;
@@ -110,6 +132,12 @@
 		E1384978167BB84500F45403 /* Test corpus */ = {
 			isa = PBXGroup;
 			children = (
+				E16F2A011695EE090004E309 /* black.png */,
+				E16F2A021695EE090004E309 /* equalized.jpg */,
+				E16F2A031695EE090004E309 /* midgrey.png */,
+				E16F2A041695EE090004E309 /* normalized.jpg */,
+				E16F2A051695EE090004E309 /* original.jpg */,
+				E16F2A061695EE090004E309 /* white.png */,
 				E1384979167BB89900F45403 /* 3K1W.png */,
 			);
 			name = "Test corpus";
@@ -159,6 +187,8 @@
 				E1C37BA61648653700F1976D /* PHHasher.m */,
 				E16DC9A3164D89560083A47A /* PHUtility.m */,
 				E16DC9A6164D89620083A47A /* PHUtility.h */,
+				E16F29FD1695E9E50004E309 /* PHHamming.m */,
+				E16F29FF1695E9F30004E309 /* PHHamming.h */,
 			);
 			path = perceptualhash;
 			sourceTree = "<group>";
@@ -268,6 +298,12 @@
 			files = (
 				E138496E167BACD800F45403 /* InfoPlist.strings in Resources */,
 				E138497A167BB89900F45403 /* 3K1W.png in Resources */,
+				E16F2A071695EE090004E309 /* black.png in Resources */,
+				E16F2A081695EE090004E309 /* equalized.jpg in Resources */,
+				E16F2A091695EE090004E309 /* midgrey.png in Resources */,
+				E16F2A0A1695EE090004E309 /* normalized.jpg in Resources */,
+				E16F2A0B1695EE090004E309 /* original.jpg in Resources */,
+				E16F2A0C1695EE090004E309 /* white.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -297,6 +333,8 @@
 				E1384971167BACD800F45403 /* vanillatest.m in Sources */,
 				E138497B167BBB2F00F45403 /* PHHasher.m in Sources */,
 				E138497C167BBB3400F45403 /* PHUtility.m in Sources */,
+				E16F29FB1695E9480004E309 /* TestHammingDistance.m in Sources */,
+				E16F2A001695EA380004E309 /* PHHamming.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -307,6 +345,7 @@
 				E1C37B621648297A00F1976D /* main.m in Sources */,
 				E1C37BA71648653700F1976D /* PHHasher.m in Sources */,
 				E16DC9A4164D89560083A47A /* PHUtility.m in Sources */,
+				E16F29FE1695E9E50004E309 /* PHHamming.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
